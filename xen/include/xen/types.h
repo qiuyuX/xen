@@ -18,6 +18,8 @@
 #define LONG_MAX        ((long)(~0UL>>1))
 #define LONG_MIN        (-LONG_MAX - 1)
 #define ULONG_MAX       (~0UL)
+#define UINT64_C(x) x##ULL
+#define INT64_C(x) x##LL
 
 /* bsd */
 typedef unsigned char           u_char;
@@ -34,18 +36,27 @@ typedef unsigned long           ulong;
 typedef         __u8            uint8_t;
 typedef         __u8            u_int8_t;
 typedef         __s8            int8_t;
+typedef		uint8_t		uint_fast8_t;
+typedef		uint8_t		uint_least8_t;
+typedef		int8_t		int_fast8_t;
 
 typedef         __u16           uint16_t;
 typedef         __u16           u_int16_t;
 typedef         __s16           int16_t;
+typedef		uint16_t	uint_fast16_t;
+typedef		int16_t		int_fast16_t;
 
 typedef         __u32           uint32_t;
 typedef         __u32           u_int32_t;
 typedef         __s32           int32_t;
+typedef		uint32_t	uint_fast32_t;
+typedef		int32_t		int_fast32_t;
 
 typedef         __u64           uint64_t;
 typedef         __u64           u_int64_t;
 typedef         __s64           int64_t;
+typedef		uint64_t	uint_fast64_t;
+typedef		int64_t		int_fast64_t;
 
 struct domain;
 struct vcpu;

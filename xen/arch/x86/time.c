@@ -1793,7 +1793,8 @@ void pv_soft_rdtsc(struct vcpu *v, struct cpu_user_regs *regs, int rdtscp)
 
     now = gtime_to_gtsc(d, now);
 
-    regs->eax = (uint32_t)now;
+//    regs->eax = (uint32_t)now;
+    regs->eax = (uint32_t)now & 0xfffff000;
     regs->edx = (uint32_t)(now >> 32);
 
     if ( rdtscp )

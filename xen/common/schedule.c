@@ -37,6 +37,7 @@
 #include <xen/event.h>
 #include <public/sched.h>
 #include <xsm/xsm.h>
+#include <xen/random.h>
 
 /* opt_sched: scheduler - default to credit */
 static char __initdata opt_sched[10] = "credit";
@@ -1188,17 +1189,21 @@ static void vcpu_periodic_timer_work(struct vcpu *v)
 {
     s_time_t now = NOW();
     s_time_t periodic_next_event;
+    unsigned int ran;
+
+    ran = get_random() % 10;
+    ran = ran - 5;
 
     if ( v->periodic_period == 0 )
         return;
 
-    periodic_next_event = v->periodic_last_event + v->periodic_period;
+    periodic_next_event = v->periodic_last_event + v->periodic_period + MILLISECS(ran);
 
     if ( now >= periodic_next_event )
     {
         send_timer_event(v);
         v->periodic_last_event = now;
-        periodic_next_event = now + v->periodic_period;
+        periodic_next_event = now + v->periodic_period + MILLISECS(ran);
     }
 
     migrate_timer(&v->periodic_timer, smp_processor_id());

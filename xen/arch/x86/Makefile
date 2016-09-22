@@ -4,6 +4,8 @@ subdir-y += genapic
 subdir-y += hvm
 subdir-y += mm
 subdir-y += oprofile
+subdir-y += dp
+subdir-y += float 
 
 subdir-$(x86_64) += x86_64
 
