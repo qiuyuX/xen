@@ -9,9 +9,9 @@
         float_data.u = u_v; \
         f_v = float_data.f
 
-union { 
-        float f;
-        uint32_t u;
+static union { 
+		float f;
+        	uint32_t u;
 } float_data;
 
 uint32_t DP_MAX = 0xFFFFFFFF;

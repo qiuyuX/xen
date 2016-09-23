@@ -72,6 +72,11 @@ struct vcpu *idle_vcpu[NR_CPUS] __read_mostly;
 
 static vcpu_info_t dummy_vcpu_info;
 
+union {
+	float f;
+	uint32_t u;
+} float_data; 
+
 static void __domain_finalise_shutdown(struct domain *d)
 {
     struct vcpu *v;
@@ -256,11 +261,23 @@ struct domain *domain_create(domid_t domid, unsigned int domcr_flags,
            INIT_evtchn = 1u<<3, INIT_gnttab = 1u<<4, INIT_arch = 1u<<5 };
     int err, init_status = 0;
     int poolid = CPUPOOLID_NONE;
+    float32_t epsilon;
+    union {
+    	float f;
+	uint32_t u;
+    } float_data; 
 
     if ( (d = alloc_domain_struct()) == NULL )
         return ERR_PTR(-ENOMEM);
 
     d->domain_id = domid;
+
+    // initialize d-privacy related structure
+
+    float_data.f = 0.1;
+    epsilon.v = float_data.u;
+    
+    dp_initialize(&d->dp, epsilon);
 
     lock_profile_register_struct(LOCKPROF_TYPE_PERDOM, d, domid, "Domain");
 

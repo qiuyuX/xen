@@ -25,6 +25,7 @@
 #include <public/vcpu.h>
 #include <public/vm_event.h>
 #include <public/event_channel.h>
+#include <xen/dp/dprivacy.h>
 
 #ifdef CONFIG_COMPAT
 #include <compat/vcpu.h>
@@ -462,6 +463,7 @@ struct domain
     /* vNUMA topology accesses are protected by rwlock. */
     rwlock_t vnuma_rwlock;
     struct vnuma_info *vnuma;
+    struct dp_struct dp;
 };
 
 struct domain_setup_info
