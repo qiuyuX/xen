@@ -39,6 +39,7 @@
 #include <asm/setup.h> /* for early_time_init */
 #include <asm/hvm/svm/svm.h> /* for cpu_has_tsc_ratio */
 #include <public/arch-x86/cpuid.h>
+#include <xen/dp/dprivacy.h>
 
 /* opt_clocksource: Force clocksource to one of: pit, hpet, acpi. */
 static char __initdata opt_clocksource[10];

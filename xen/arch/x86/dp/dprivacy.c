@@ -27,7 +27,7 @@ void dp_initialize(struct dp_struct *dp, float32_t e)
 	
 	one_f = ui32_to_f32(1);
 	dp->base = 0;
-	dp->base_n = ui32_to_f32(0);
+	dp->base_n = ui32_to_f64(0);
 	dp->index = 0;
 	dp->e_inverse = f32_div(one_f, e);
 }
@@ -52,11 +52,12 @@ static int is_new_length(uint32_t index)
         return bit_len;
 }
 
-int32_t dp_add_noise(struct dp_struct *dp, uint32_t value)
+int64_t dp_add_noise(struct dp_struct *dp, uint64_t value)
 {
 	int bit_len;
-	float32_t value_n; /* output after adding noise */
-	float32_t tmp_f, zero_f;
+	float64_t value_n; /* output after adding noise */
+	float64_t tmp_f64;
+	float32_t tmp_f32, zero_f;
 
 	zero_f = ui32_to_f32(0);
 	dp->index++;
@@ -64,15 +65,17 @@ int32_t dp_add_noise(struct dp_struct *dp, uint32_t value)
 	
 	if (bit_len > 0) {
 		dp->bit_len = bit_len;
-		tmp_f = ui32_to_f32(value - dp->base); 
-		dp->base_n = f32_add(dp->base_n, tmp_f);
-		tmp_f = get_fast_laplace(zero_f, dp->e_inverse);
-		dp->base_n = f32_add(dp->base_n, tmp_f);
+		tmp_f64 = ui64_to_f64(value - dp->base); 
+		dp->base_n = f64_add(dp->base_n, tmp_f64);
+		tmp_f32 = get_fast_laplace(zero_f, dp->e_inverse);
+		tmp_f64 = f32_to_f64(tmp_f32);
+		dp->base_n = f64_add(dp->base_n, tmp_f64);
 		dp->base = value;
 		value_n.v = dp->base_n.v;
 	}
 	else {
-		int i, j, sum;
+		int i, j;
+		uint64_t sum;
 		/* lsbth right most bit of index is the first 1 appears in right */  
 		int lsb = -1; 
 		sum = 0;
@@ -92,11 +95,12 @@ int32_t dp_add_noise(struct dp_struct *dp, uint32_t value)
 		dp->diff[lsb] = value - dp->base - sum;
 
 		// sample a laplace noise and calculate a noised difference vector	
-		tmp_f = ui32_to_f32(dp->bit_len - 1);
-		tmp_f = f32_mul(tmp_f, dp->e_inverse);
-		dp->diff_n[lsb] = get_fast_laplace(zero_f, tmp_f);
-		tmp_f = ui32_to_f32(dp->diff[lsb]);
-		dp->diff_n[lsb] = f32_add(dp->diff_n[lsb], tmp_f);
+		tmp_f32 = ui32_to_f32(dp->bit_len - 1);
+		tmp_f32 = f32_mul(tmp_f32, dp->e_inverse);
+		tmp_f32 = get_fast_laplace(zero_f, tmp_f32);
+		dp->diff_n[lsb] = f32_to_f64(tmp_f32);
+		tmp_f64 = ui64_to_f64(dp->diff[lsb]);
+		dp->diff_n[lsb] = f64_add(dp->diff_n[lsb], tmp_f64);
 		
 		// calculate the noised output	
 		value_n.v = dp->base_n.v;	
@@ -104,10 +108,10 @@ int32_t dp_add_noise(struct dp_struct *dp, uint32_t value)
 		
 		for (i = 0; i < dp->bit_len - 1; i++) {
 			if (dp->index & j)
-				value_n = f32_add(value_n, dp->diff_n[i]);
+				value_n = f64_add(value_n, dp->diff_n[i]);
 			j = j << 1;
 		}
 	}
 	
-	return f32_to_i32_r_minMag(value_n, true); 	
+	return f64_to_i64_r_minMag(value_n, true); 	
 }
