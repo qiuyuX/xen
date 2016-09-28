@@ -3,7 +3,7 @@
 
 #include <xen/float/softfloat.h>
 
-#define MAX_INDEX_LEN 7
+#define MAX_INDEX_LEN 32
 
 /*
  * For this specific application, the original data vector contains positive data, and 
@@ -20,9 +20,10 @@ struct dp_struct {
 	uint32_t index;
 	uint32_t bit_len; /* the length of the binary representation of index */
 	float32_t e_inverse;
+	uint64_t previous; /* the value released last time */
 };
 
 void dp_initialize(struct dp_struct *dp, float32_t e);
-int64_t dp_add_noise(struct dp_struct *dp, uint64_t value);
+uint64_t dp_add_noise(struct dp_struct *dp, uint64_t value);
 
 #endif /* _DPRIVACY_H */

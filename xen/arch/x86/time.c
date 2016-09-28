@@ -1774,6 +1774,7 @@ u64 gtsc_to_gtime(struct domain *d, u64 tsc)
 void pv_soft_rdtsc(struct vcpu *v, struct cpu_user_regs *regs, int rdtscp)
 {
     s_time_t now = get_s_time();
+    uint64_t now_noisy;
     struct domain *d = v->domain;
 
     spin_lock(&d->arch.vtsc_lock);
@@ -1794,8 +1795,11 @@ void pv_soft_rdtsc(struct vcpu *v, struct cpu_user_regs *regs, int rdtscp)
 
     now = gtime_to_gtsc(d, now);
 
+    now_noisy = dp_add_noise(d->dp, now);
+    printk("RDTSC: %lu. Noisy RDTSC: %lu.\n", now, now_noisy);
 //    regs->eax = (uint32_t)now;
-    regs->eax = (uint32_t)now & 0xfffff000;
+    
+    regs->eax = (uint32_t)now;
     regs->edx = (uint32_t)(now >> 32);
 
     if ( rdtscp )

@@ -62,6 +62,7 @@
 #include <xen/iommu.h>
 #include <compat/vcpu.h>
 #include <asm/psr.h>
+#include <xen/dp/dprivacy.h>
 
 DEFINE_PER_CPU(struct vcpu *, curr_vcpu);
 DEFINE_PER_CPU(unsigned long, cr4);
@@ -228,9 +229,20 @@ static unsigned int __init noinline _domain_struct_bits(void)
 }
 #endif
 
+/*
+ * x_x: The memory for dp_struct is allocated as a separate page. Also dp_struct is
+ * initialized here.
+*/
 struct domain *alloc_domain_struct(void)
 {
     struct domain *d;
+    struct dp_struct *dp;
+    float32_t epsilon;
+    union {
+    	float f;
+	uint32_t u;
+    } float_data; 
+
 #ifdef CONFIG_BIGMEM
     const unsigned int bits = 0;
 #else
@@ -245,9 +257,23 @@ struct domain *alloc_domain_struct(void)
 #endif
 
     BUILD_BUG_ON(sizeof(*d) > PAGE_SIZE);
+    BUILD_BUG_ON(sizeof(*dp) > PAGE_SIZE);
+
     d = alloc_xenheap_pages(0, MEMF_bits(bits));
+    dp = alloc_xenheap_pages(0, MEMF_bits(bits));
+
     if ( d != NULL )
         clear_page(d);
+
+    if ( dp != NULL )
+        clear_page(dp);
+
+    // initialize d-privacy related structure
+    float_data.f = 0.1;
+    epsilon.v = float_data.u;
+    dp_initialize(dp, epsilon);
+    d->dp = dp;
+
     return d;
 }
 
@@ -255,6 +281,7 @@ void free_domain_struct(struct domain *d)
 {
     lock_profile_deregister_struct(LOCKPROF_TYPE_PERDOM, d);
     free_xenheap_page(d);
+    free_xenheap_page(d->dp);
 }
 
 struct vcpu *alloc_vcpu_struct(void)

@@ -30,6 +30,7 @@ void dp_initialize(struct dp_struct *dp, float32_t e)
 	dp->base_n = ui32_to_f64(0);
 	dp->index = 0;
 	dp->e_inverse = f32_div(one_f, e);
+	dp->previous = 0;
 }
 
 // update the new bit length of the index. otherwise return -1.
@@ -52,9 +53,10 @@ static int is_new_length(uint32_t index)
         return bit_len;
 }
 
-int64_t dp_add_noise(struct dp_struct *dp, uint64_t value)
+uint64_t dp_add_noise(struct dp_struct *dp, uint64_t value)
 {
 	int bit_len;
+	int64_t result;
 	float64_t value_n; /* output after adding noise */
 	float64_t tmp_f64;
 	float32_t tmp_f32, zero_f;
@@ -113,5 +115,12 @@ int64_t dp_add_noise(struct dp_struct *dp, uint64_t value)
 		}
 	}
 	
-	return f64_to_i64_r_minMag(value_n, true); 	
+	result = f64_to_i64_r_minMag(value_n, true); 	
+
+	if (result < dp->previous)
+		return dp->previous;
+	else {
+		dp->previous = result;
+		return dp->previous;
+	}
 }

@@ -463,7 +463,7 @@ struct domain
     /* vNUMA topology accesses are protected by rwlock. */
     rwlock_t vnuma_rwlock;
     struct vnuma_info *vnuma;
-    struct dp_struct dp;
+    struct dp_struct *dp;
 };
 
 struct domain_setup_info
