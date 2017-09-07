@@ -1,10 +1,6 @@
-/******************************************************************************
- * arch/x86/time.c
- * 
- * Per-CPU time calibration and management.
- * 
- * Copyright (c) 2002-2005, K A Fraser
- * 
+/*****************************************************************************
+ * arch/x86/time.c * * Per-CPU time calibration and management.  
+ * * * Copyright (c) 2002-2005, K A Fraser * 
  * Portions from Linux are:
  * Copyright (c) 1991, 1992, 1995  Linus Torvalds
  */
@@ -1775,7 +1771,11 @@ void pv_soft_rdtsc(struct vcpu *v, struct cpu_user_regs *regs, int rdtscp)
 {
     s_time_t now = get_s_time();
     uint64_t now_noisy;
+    int diff;
     struct domain *d = v->domain;
+//    printk("count: %d.\n", d->dp->tsc_count);	
+    if (regs->eax == 619)
+        dp_refresh(d->dp);
 
     spin_lock(&d->arch.vtsc_lock);
 
@@ -1795,12 +1795,56 @@ void pv_soft_rdtsc(struct vcpu *v, struct cpu_user_regs *regs, int rdtscp)
 
     now = gtime_to_gtsc(d, now);
 
+/*
     now_noisy = dp_add_noise(d->dp, now);
-    printk("RDTSC: %lu. Noisy RDTSC: %lu.\n", now, now_noisy);
+
+    rdtsc_count++;
+
+    if (rdtsc_count > 1800000 && rdtsc_count <= 1800150) {
+        diff = now_noisy - now;
+	if (diff < 0)
+	    diff = 0 - diff;
+	
+	printk("times: %d. rdtsc count: %d. diff: %d.\n", 
+		times, rdtsc_count - 1800000, diff);	
+    }
+*/
+    if (regs->eax == 1992) {
+        rdtsc_count++;
+        now_noisy = resolution_add_noise(d->dp, now);
+        regs->eax = (uint32_t)now_noisy;
+        regs->edx = (uint32_t)(now_noisy >> 32);
+
+        diff = now_noisy - now;
+        if (diff < 0)
+            diff = 0 - diff;
+	printk("times: %d. rdtsc count: %d. diff: %d.\n", 
+		times, rdtsc_count, diff);	
+    }
+    else {
+        regs->eax = (uint32_t)now;
+        regs->edx = (uint32_t)(now >> 32);
+    }
+
+//    if (d->domain_id % 2 ==  1)
+//	    printk("domain: %u. count: %u. rdtsc: %lu.\n", d->domain_id, d->dp->tsc_count, now);	
+/*
+    now_noisy = dp_add_noise(d->dp, now);
+    regs->eax = (uint32_t)now_noisy;
+    regs->edx = (uint32_t)(now_noisy >> 32);
+*/
+   
+//    printk("RDTSC: %lu. Noisy RDTSC: %lu.\n", now, now_noisy);
 //    regs->eax = (uint32_t)now;
-    
+
+/*
+    rdtsc_count++;	
     regs->eax = (uint32_t)now;
     regs->edx = (uint32_t)(now >> 32);
+    diff = regs->eax & 0xfffff800;
+    diff = regs->eax - diff;
+    printk("count: %d. diff: %d.\n", rdtsc_count, diff);	
+*/
 
     if ( rdtscp )
          regs->ecx =

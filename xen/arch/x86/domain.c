@@ -269,7 +269,7 @@ struct domain *alloc_domain_struct(void)
         clear_page(dp);
 
     // initialize d-privacy related structure
-    float_data.f = 0.1;
+    float_data.f = 0.0005;
     epsilon.v = float_data.u;
     dp_initialize(dp, epsilon);
     d->dp = dp;
